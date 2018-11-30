@@ -1,6 +1,8 @@
 
 import pygame
 
+from board import Board, CaptureBoard
+
 # Dictionary describing the different states the game can be in at any 
 # given time
 game_status = {
@@ -36,6 +38,34 @@ class TriD():
         self.board_end_x = self.grid_width - self.board_start_x - 1
         self.board_end_y = self.grid_height - self.board_start_y - 1
 
+        # Initialize boards
+        self.main1 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 1) * self.grid_space, self.grid_space, 4)
+        self.main2 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 3) * self.grid_space, self.grid_space, 4)
+        self.main3 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 5) * self.grid_space, self.grid_space, 4)
+        self.cb1 = CaptureBoard((self.board_start_x) * self.grid_space, (self.board_start_y) * self.grid_space, self.grid_space)
+        self.cb2 = CaptureBoard((self.board_start_x + 4) * self.grid_space, (self.board_start_y) * self.grid_space, self.grid_space)
+        self.cb3 = CaptureBoard((self.board_start_x) * self.grid_space, (self.board_start_y + 8) * self.grid_space, self.grid_space)
+        self.cb4 = CaptureBoard((self.board_start_x + 4) * self.grid_space, (self.board_start_y + 8) * self.grid_space, self.grid_space)
+
+        # Zlevels
+        self.zlevel = [None] * 7
+        self.zlevel[6] = [self.cb1, self.cb2]
+        self.zlevel[5] = [self.main1]
+        self.zlevel[3] = [self.main2]
+        self.zlevel[2] = [self.cb3, self.cb4]
+        self.zlevel[1] = [self.main3]
+
+        # Colors for each zlevel
+        self.zcolor = [
+            (255, 0, 0),
+            (0, 255, 0),
+            (0, 0, 255),
+            (255, 255, 0),
+            (255, 0, 255),
+            (0, 255, 255),
+            (128, 128, 128)
+        ]
+
     def mainloop(self):
         self.status = game_status["NORMAL"]
         while self.status != game_status["FINISHED"]:
@@ -59,6 +89,13 @@ class TriD():
 
         if self.debug:
             self.draw_grid()
+
+        for z in range(len(self.zlevel)):
+            li = self.zlevel[z]
+            if li:
+                for b in li:
+                    b.draw(self.main_window)
+                    b.outline(self.main_window, self.zcolor[z])
 
         pygame.display.flip()
 
