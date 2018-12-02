@@ -54,15 +54,16 @@ class TriD():
         self.zlevel[3] = [self.main2]
         self.zlevel[2] = [self.cb3, self.cb4]
         self.zlevel[1] = [self.main3]
+        self.current_zlevel = 1
 
         # Colors for each zlevel
         self.zcolor = [
-            (255, 0, 0),
-            (0, 255, 0),
-            (0, 0, 255),
-            (255, 255, 0),
-            (255, 0, 255),
-            (0, 255, 255),
+            (128, 0, 0),
+            (0, 128, 0),
+            (0, 0, 128),
+            (128, 128, 0),
+            (128, 0, 128),
+            (0, 128, 128),
             (128, 128, 128)
         ]
 
@@ -77,7 +78,15 @@ class TriD():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.status = game_status["FINISHED"]
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+                if self.current_zlevel < len(self.zlevel) - 1:
+                    self.current_zlevel += 1
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
+                if self.current_zlevel > 0:
+                    self.current_zlevel -= 1
+
         keys = pygame.key.get_pressed()
+
         if keys[pygame.K_ESCAPE]:
             self.status = game_status["FINISHED"]
 
@@ -91,12 +100,18 @@ class TriD():
             self.draw_grid()
 
         for z in range(len(self.zlevel)):
+            if z == self.current_zlevel: continue
             li = self.zlevel[z]
             if li:
                 for b in li:
                     b.draw(self.main_window)
-                    b.outline(self.main_window, self.zcolor[z])
+#                     b.outline(self.main_window, self.zcolor[z])
 
+        if self.zlevel[self.current_zlevel]:
+            for b in self.zlevel[self.current_zlevel]:
+                b.draw(self.main_window)
+                b.outline(self.main_window, self.zcolor[self.current_zlevel])
+        
         pygame.display.flip()
 
     def draw_grid(self):
