@@ -6,7 +6,7 @@ import socket
 class Client():
 
     def __init__(self):
-        self.ws = websocket.WebSocket(sockopt=((socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),))
+        self.ws = websocket.WebSocket()
 
     def connect(self, address):
         self.ws.connect(address)
@@ -17,6 +17,7 @@ class Client():
 
     def get_available_opponents(self):
         message = json.dumps({"type": "getavailable"})
+        self.ws.send(message)
         return json.loads(self.ws.recv())
 
     def initiate_game(self, username, opponent):

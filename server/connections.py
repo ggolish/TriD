@@ -24,7 +24,6 @@ def process_message(socket, message):
 def send_all_available_users(socket):
     global users
     usernames = []
-    print(users)
     for s, u in users.items():
         if s != socket and "username" in u and "opponent" not in u:
             usernames.append(u["username"])
