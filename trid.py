@@ -2,6 +2,7 @@
 import pygame
 
 from board import Board, CaptureBoard
+from piece import *
 
 # Dictionary describing the different states the game can be in at any 
 # given time
@@ -47,7 +48,7 @@ class TriD():
         self.cb3 = CaptureBoard((self.board_start_x) * self.grid_space, (self.board_start_y + 8) * self.grid_space, self.grid_space)
         self.cb4 = CaptureBoard((self.board_start_x + 4) * self.grid_space, (self.board_start_y + 8) * self.grid_space, self.grid_space)
 
-        # Zlevels
+        # Zlevels (which board pieces are on)
         self.zlevel = [None] * 7
         self.zlevel[6] = [self.cb1, self.cb2]
         self.zlevel[5] = [self.main1]
@@ -56,16 +57,46 @@ class TriD():
         self.zlevel[1] = [self.main3]
         self.current_zlevel = 1
 
-        # Colors for each zlevel
-        self.zcolor = [
-            (128, 0, 0),
-            (0, 128, 0),
-            (0, 0, 128),
-            (128, 128, 0),
-            (128, 0, 128),
-            (0, 128, 128),
-            (128, 128, 128)
-        ]
+        # Rank / file system
+        self.spaces = []
+        for i in range(10):
+            f = {}
+            for j in range(6):
+                f[chr(ord("a") + j)] = [None] * len(self.zlevel)
+            self.spaces.append(f)
+
+        # Initialize piece layout
+        for i in range(1, 5):
+            self.spaces[2][chr(ord('a') + i)][1] = Pawn(True, self.grid_space)
+        self.spaces[1]['a'][2] = Pawn(True, self.grid_space)
+        self.spaces[1]['b'][2] = Pawn(True, self.grid_space)
+        self.spaces[0]['a'][2] = Rook(True, self.grid_space)
+        self.spaces[0]['b'][2] = Queen(True, self.grid_space)
+        self.spaces[1]['b'][1] = Knight(True, self.grid_space)
+        self.spaces[1]['c'][1] = Bishop(True, self.grid_space)
+        self.spaces[1]['d'][1] = Bishop(True, self.grid_space)
+        self.spaces[1]['e'][1] = Knight(True, self.grid_space)
+        self.spaces[0]['e'][2] = King(True, self.grid_space)
+        self.spaces[0]['f'][2] = Rook(True, self.grid_space)
+        self.spaces[1]['e'][2] = Pawn(True, self.grid_space)
+        self.spaces[1]['f'][2] = Pawn(True, self.grid_space)
+
+        for i in range(1, 5):
+            self.spaces[7][chr(ord('a') + i)][5] = Pawn(False, self.grid_space)
+        self.spaces[8]['a'][6] = Pawn(False, self.grid_space)
+        self.spaces[8]['b'][6] = Pawn(False, self.grid_space)
+        self.spaces[9]['a'][6] = Rook(False, self.grid_space)
+        self.spaces[9]['b'][6] = Queen(False, self.grid_space)
+        self.spaces[8]['b'][5] = Knight(False, self.grid_space)
+        self.spaces[8]['c'][5] = Bishop(False, self.grid_space)
+        self.spaces[8]['d'][5] = Bishop(False, self.grid_space)
+        self.spaces[8]['e'][5] = Knight(False, self.grid_space)
+        self.spaces[9]['e'][6] = King(False, self.grid_space)
+        self.spaces[9]['f'][6] = Rook(False, self.grid_space)
+        self.spaces[8]['e'][6] = Pawn(False, self.grid_space)
+        self.spaces[8]['f'][6] = Pawn(False, self.grid_space)
+
+        print(self.spaces)
 
     def mainloop(self):
         self.status = game_status["NORMAL"]
@@ -79,11 +110,9 @@ class TriD():
             if event.type == pygame.QUIT:
                 self.status = game_status["FINISHED"]
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-                if self.current_zlevel < len(self.zlevel) - 1:
-                    self.current_zlevel += 1
+                self.change_zlevel(1)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
-                if self.current_zlevel > 0:
-                    self.current_zlevel -= 1
+                self.change_zlevel(-1)
 
         keys = pygame.key.get_pressed()
 
@@ -105,12 +134,14 @@ class TriD():
             if li:
                 for b in li:
                     b.draw(self.main_window)
-#                     b.outline(self.main_window, self.zcolor[z])
+                    self.draw_pieces(z)
+                    b.outline(self.main_window, (0, 0, 0))
 
         if self.zlevel[self.current_zlevel]:
             for b in self.zlevel[self.current_zlevel]:
                 b.draw(self.main_window)
-                b.outline(self.main_window, self.zcolor[self.current_zlevel])
+                self.draw_pieces(self.current_zlevel)
+                b.outline(self.main_window, (128, 0, 0))
         
         pygame.display.flip()
 
@@ -123,4 +154,25 @@ class TriD():
                     c = (25, 25, 25)
                 pygame.draw.rect(self.main_window, c, (x * self.grid_space, y * self.grid_space, self.grid_space, self.grid_space), 1)
 
+    def change_zlevel(self, offset):
+        if offset != 1 and offset != -1:
+            return
+        self.current_zlevel += offset
+        self.current_zlevel %= len(self.zlevel)
+        li = self.zlevel[self.current_zlevel]
+        while not li:
+            self.current_zlevel += offset
+            self.current_zlevel %= len(self.zlevel)
+            li = self.zlevel[self.current_zlevel]
+
+    def draw_pieces(self, z):
+        for i in range(10):
+            for j in range(6):
+                r = i
+                f = chr(ord('a') + j)
+                p = self.spaces[r][f][z]
+                if p != None:
+                    x = (self.board_start_x + (ord(f) - ord('a'))) * self.grid_space
+                    y = (self.board_start_y + (9 - r)) * self.grid_space
+                    p.draw(self.main_window, x, y)
 
