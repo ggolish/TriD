@@ -3,17 +3,18 @@ import sys
 import tornado.web
 import tornado.ioloop
 import tornado.websocket
+from connections import add_user, remove_user, process_message
 
 class TriDSocket(tornado.websocket.WebSocketHandler):
 
     def open(self):
-        pass
+        add_user(self)
 
     def on_close(self):
-        pass
+        remove_user(self)
 
     def on_message(self, message):
-        pass
+        process_message(self, message)
 
 def make_app():
     return tornado.web.Application([
