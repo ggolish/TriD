@@ -91,14 +91,21 @@ class OpponentChooseWindow():
 
     def update(self):
         if self.finished: return
-        self.opponents = self.update_callback()
+        response = self.update_callback()
+        if response["type"] == "all":
+            self.update_lb(response["users"])
+        elif response["type"] == "request":
+            print("Received request")
+        self.update_timer = threading.Timer(1.0, self.update)
+        self.update_timer.start()
+
+    def update_lb(self, users):
         current = self.lb.curselection()
         self.lb.delete(0, tk.END)
-        for o in self.opponents:
+        for o in users:
             self.lb.insert(tk.END, o)
         if current and current[0] < self.lb.size():
             self.lb.activate(current[0])
             self.lb.selection_set(current[0])
-        self.update_timer = threading.Timer(1.0, self.update)
-        self.update_timer.start()
+
 

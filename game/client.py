@@ -13,10 +13,11 @@ class Client():
 
     def set_username(self, username):
         message = json.dumps({"type": "connect", "username": username})
+        self.username = username
         self.ws.send(message)
 
     def get_available_opponents(self):
-        message = json.dumps({"type": "getavailable"})
+        message = json.dumps({"type": "getavailable", "username": self.username})
         self.ws.send(message)
         return json.loads(self.ws.recv())
 
