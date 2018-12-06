@@ -2,6 +2,7 @@
 import websocket
 import json
 import socket
+import time
 
 class Client():
 
@@ -22,4 +23,13 @@ class Client():
         return json.loads(self.ws.recv())
 
     def initiate_game(self, username, opponent):
-        return True
+        message = json.dumps({"type": "choose", "username": username, "opponent": opponent})
+        self.ws.send(message)
+        response = json.loads(self.ws.recv())
+        while response["type"] != "reply":
+            response = self.ws.recv()
+        return response["accepted"]
+
+    def request_reply(self, opponent, accepted):
+        message = json.dumps({"type": "reply", "username": self.username, "opponent": opponent, "accepted": accepted})
+        self.ws.send(message)

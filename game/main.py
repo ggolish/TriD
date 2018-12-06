@@ -29,13 +29,22 @@ if __name__ == "__main__":
 
     # Choose an opponent
     window = OpponentChooseWindow(client.get_available_opponents)
+
     while True:
-        opponent = window.choose_opponent()
-        if client.initiate_game(username, opponent):
+        opponent, t = window.choose_opponent()
+        if not opponent or not t:
+            sys.exit(0)
+        if t == "request" and client.initiate_game(username, opponent):
             break
+        elif t == "accept":
+            client.request_reply(opponent, True)
+            break
+        elif t == "deny":
+            client.request_reply(opponent, False)
+
     window.destroy()
 
-    print(opponent)
+    print("Playing against", opponent)
     
 #     game = TriD()
 #     game.mainloop()

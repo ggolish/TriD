@@ -28,6 +28,15 @@ def process_message(socket, message):
         send_all_available_users(message["username"])
     elif message["type"] == "choose":
         users[message["opponent"]]["request"] = message["username"]
+        users[message["username"]]["opponent"] = message["opponent"]
+    elif message["type"] == "reply":
+        if message["accepted"] == True:
+            users[message["username"]]["opponent"] = message["opponent"]
+            users[message["opponent"]]["socket"].write_message(message)
+        else:
+            del users[message["opponent"]]["opponent"]
+            users[message["opponent"]]["socket"].write_message(message)
+
 
 def send_all_available_users(username):
     global users
@@ -36,6 +45,7 @@ def send_all_available_users(username):
     if "request" in users[username]:
         message = json.dumps({"type": "request", "opponent": users[username]["request"]})
         users[username]["socket"].write_message(message)
+        del users[username]["request"]
         return
 
     # Send everything

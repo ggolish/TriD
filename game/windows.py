@@ -56,15 +56,26 @@ class OpponentChooseWindow():
         row2 = tk.Frame(self.root)
         choose_button = tk.Button(row2, text="Choose", command=self.choose_callback)
         cancel_button = tk.Button(row2, text="Cancel", command=self.root.quit)
+        self.request_frame = tk.Frame(self.root)
+        self.request_var = tk.StringVar()
+        request_label = tk.Label(self.request_frame, textvariable=self.request_var)
+        accept_button = tk.Button(self.request_frame, text="Accept", command=self.accept_request)
+        deny_button = tk.Button(self.request_frame, text="Deny", command=self.deny_request)
 
-        row1.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
-        self.lb.pack(side=tk.TOP)
-        row2.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
-        choose_button.pack(side=tk.LEFT, padx=5)
-        cancel_button.pack(side=tk.LEFT)
+        row1.grid(row=0, padx=5, pady=5)
+        self.lb.grid(row=0)
+        row2.grid(row=2, padx=5, pady=5)
+        choose_button.grid(row=0, column=0, padx=5)
+        cancel_button.grid(row=0, column=1)
+        self.request_frame.grid(row=1, padx=5, pady=5, sticky="W")
+        request_label.grid(row=0, sticky="W")
+        accept_button.grid(row=0, column=2, sticky="E", padx=5)
+        deny_button.grid(row=0, column=3, sticky="E", padx=5)
+        self.request_frame.grid_remove()
         center(self)
 
         self.opponent = None
+        self.type = None
         self.update_callback = update_callback
         self.finished = False
         self.update()
@@ -73,13 +84,14 @@ class OpponentChooseWindow():
         self.finished = False
         self.update()
         self.root.mainloop()
-        return self.opponent
+        return self.opponent, self.type
 
     def choose_callback(self):
         self.finished = True
         selection = self.lb.curselection()
         if selection:
             self.opponent = self.lb.get(selection[0])
+            self.type = "request"
             self.root.quit()
         else:
             self.finished = False
@@ -95,7 +107,9 @@ class OpponentChooseWindow():
         if response["type"] == "all":
             self.update_lb(response["users"])
         elif response["type"] == "request":
-            print("Received request")
+            self.opponent = response["opponent"]
+            self.request_var.set("Player {} wants to play you.".format(response["opponent"]))
+            self.request_frame.grid()
         self.update_timer = threading.Timer(1.0, self.update)
         self.update_timer.start()
 
@@ -107,5 +121,13 @@ class OpponentChooseWindow():
         if current and current[0] < self.lb.size():
             self.lb.activate(current[0])
             self.lb.selection_set(current[0])
+
+    def accept_request(self):
+        self.type = "accept"
+        self.root.quit()
+
+    def deny_request(self):
+        self.type = "deny"
+        self.root.quit()
 
 
