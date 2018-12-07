@@ -28,10 +28,10 @@ if __name__ == "__main__":
     client.set_username(username)
 
     # Choose an opponent
-    window = OpponentChooseWindow(client.get_available_opponents)
-
     while True:
+        window = OpponentChooseWindow(client.get_available_opponents)
         opponent, t = window.choose_opponent()
+        window.destroy()
         if not opponent or not t:
             sys.exit(0)
         if t == "request" and client.initiate_game(username, opponent):
@@ -41,8 +41,6 @@ if __name__ == "__main__":
             break
         elif t == "deny":
             client.request_reply(opponent, False)
-
-    window.destroy()
 
     print("Playing against", opponent)
     
