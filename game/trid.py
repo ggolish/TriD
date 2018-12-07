@@ -14,19 +14,17 @@ game_status = {
 
 class TriD():
 
-    def __init__(self, debug=False):
+    def __init__(self, client, debug=False):
 
         # Initialize pygame variables
         pygame.init()
-        if debug:
-            self.width = 800
-            self.height = 600
-            self.main_window = pygame.display.set_mode((self.width, self.height))
-        else:
-            self.main_window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-            self.width, self.height = self.main_window.get_size()
+        self.width = 1000
+        self.height = 600
+        self.main_window = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("TriD Chess ({}): Playing {}".format(client.username, client.opponent))
 
         # Initialize state variables
+        self.client = client
         self.status = game_status["INIT"]
         self.debug = debug
 
@@ -34,7 +32,7 @@ class TriD():
         self.grid_space = min(self.width, self.height) // 12
         self.grid_width = self.width // self.grid_space
         self.grid_height = self.height // self.grid_space
-        self.board_start_x = (self.grid_width - 6) // 2
+        self.board_start_x = 1
         self.board_start_y = (self.grid_height - 10) // 2
         self.board_end_x = self.grid_width - self.board_start_x - 1
         self.board_end_y = self.grid_height - self.board_start_y - 1

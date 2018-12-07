@@ -8,6 +8,9 @@ class Client():
 
     def __init__(self):
         self.ws = websocket.WebSocket()
+        self.username = None
+        self.opponent = None
+        self.player1 = None
 
     def connect(self, address):
         self.ws.connect(address)
@@ -28,8 +31,14 @@ class Client():
         response = json.loads(self.ws.recv())
         while response["type"] != "reply":
             response = self.ws.recv()
+        if response["accepted"]:
+            self.opponent = opponent
+            self.player1 = True
         return response["accepted"]
 
     def request_reply(self, opponent, accepted):
+        if accepted:
+            self.opponent = opponent
+            self.player1 = False
         message = json.dumps({"type": "reply", "username": self.username, "opponent": opponent, "accepted": accepted})
         self.ws.send(message)

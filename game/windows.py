@@ -52,7 +52,7 @@ class OpponentChooseWindow():
         self.root.title("TriD Chess: Choose Opponent")
 
         row1 = tk.Frame(self.root)
-        self.lb = tk.Listbox(row1, width=40, height=20)
+        self.lb = tk.Listbox(row1, width=60, height=20)
         row2 = tk.Frame(self.root)
         choose_button = tk.Button(row2, text="Choose", command=self.choose_callback)
         cancel_button = tk.Button(row2, text="Cancel", command=self.root.quit)
@@ -129,5 +129,4 @@ class OpponentChooseWindow():
     def deny_request(self):
         self.type = "deny"
         self.root.quit()
-
 
