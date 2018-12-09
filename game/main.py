@@ -44,5 +44,5 @@ if __name__ == "__main__":
 # 
 #     print("Playing against", opponent)
     
-    game = TriD(client)
+    game = TriD(client, debug=True)
     game.mainloop()

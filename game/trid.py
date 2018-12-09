@@ -3,6 +3,7 @@ import pygame
 
 from board import Board, CaptureBoard
 from piece import *
+from gui import GUI
 
 # Dictionary describing the different states the game can be in at any 
 # given time
@@ -22,6 +23,7 @@ class TriD():
         self.height = 600
         self.main_window = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("TriD Chess ({}): Playing {}".format(client.username, client.opponent))
+        self.clock = pygame.time.Clock()
 
         # Initialize state variables
         self.client = client
@@ -36,6 +38,9 @@ class TriD():
         self.board_start_y = (self.grid_height - 10) // 2
         self.board_end_x = self.grid_width - self.board_start_x - 1
         self.board_end_y = self.grid_height - self.board_start_y - 1
+
+        # Initialize GUI
+        self.gui = GUI(self.grid_space, 8, self.board_start_y, self.grid_width - 1, self.grid_height - 1, self.client.player1)
 
         # Initialize boards
         self.main1 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 1) * self.grid_space, self.grid_space, 4)
@@ -63,7 +68,7 @@ class TriD():
                 f[chr(ord("a") + j)] = [None] * len(self.zlevel)
             self.spaces.append(f)
 
-        # Initialize piece layout
+        # Initialize white pieces
         for i in range(1, 5):
             self.spaces[2][chr(ord('a') + i)][1] = Pawn(True, self.grid_space)
         self.spaces[1]['a'][2] = Pawn(True, self.grid_space)
@@ -79,6 +84,7 @@ class TriD():
         self.spaces[1]['e'][2] = Pawn(True, self.grid_space)
         self.spaces[1]['f'][2] = Pawn(True, self.grid_space)
 
+        # Initialize black pieces
         for i in range(1, 5):
             self.spaces[7][chr(ord('a') + i)][5] = Pawn(False, self.grid_space)
         self.spaces[8]['a'][6] = Pawn(False, self.grid_space)
@@ -93,8 +99,6 @@ class TriD():
         self.spaces[9]['f'][6] = Rook(False, self.grid_space)
         self.spaces[8]['e'][6] = Pawn(False, self.grid_space)
         self.spaces[8]['f'][6] = Pawn(False, self.grid_space)
-
-        print(self.spaces)
 
     def mainloop(self):
         self.status = game_status["NORMAL"]
@@ -118,7 +122,7 @@ class TriD():
             self.status = game_status["FINISHED"]
 
     def update(self):
-        pass
+        self.clock.tick(60)
 
     def draw(self):
         self.main_window.fill((0, 0, 0))
@@ -140,6 +144,8 @@ class TriD():
                 b.draw(self.main_window)
                 self.draw_pieces(self.current_zlevel)
                 b.outline(self.main_window, (128, 0, 0))
+
+        self.gui.draw(self.main_window)
         
         pygame.display.flip()
 
