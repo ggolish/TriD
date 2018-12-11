@@ -22,27 +22,27 @@ if __name__ == "__main__":
     client = Client()
     client.connect(address)
 
-#     # Set username
-#     window = NameEntryWindow()
-#     username = window.get_name()
-#     client.set_username(username)
-# 
-#     # Choose an opponent
-#     while True:
-#         window = OpponentChooseWindow(client.get_available_opponents)
-#         opponent, t = window.choose_opponent()
-#         window.destroy()
-#         if not opponent or not t:
-#             sys.exit(0)
-#         if t == "request" and client.initiate_game(username, opponent):
-#             break
-#         elif t == "accept":
-#             client.request_reply(opponent, True)
-#             break
-#         elif t == "deny":
-#             client.request_reply(opponent, False)
-# 
-#     print("Playing against", opponent)
+    # Set username
+    window = NameEntryWindow()
+    username = window.get_name()
+    client.set_username(username)
+
+    # Choose an opponent
+    while True:
+        window = OpponentChooseWindow(client.get_available_opponents)
+        opponent, t = window.choose_opponent()
+        window.destroy()
+        if not opponent or not t:
+            sys.exit(0)
+        if t == "request" and client.initiate_game(username, opponent):
+            break
+        elif t == "accept":
+            client.request_reply(opponent, True)
+            break
+        elif t == "deny":
+            client.request_reply(opponent, False)
+
+    print("Playing against", opponent)
     
-    game = TriD(client, debug=True)
+    game = TriD(client)
     game.mainloop()

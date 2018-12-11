@@ -42,3 +42,27 @@ class Client():
             self.player1 = False
         message = json.dumps({"type": "reply", "username": self.username, "opponent": opponent, "accepted": accepted})
         self.ws.send(message)
+
+    def send_move(self, move):
+        message = json.dumps({"type": "move", "username": self.username, "opponent": self.opponent, "move": move})
+        self.ws.send(message)
+
+    def get_move(self, callback):
+        response = None
+        while True:
+            response = json.loads(self.ws.recv())
+            if response["type"] == "move":
+                break
+        callback(response["move"])
+
+    def get_player(self, player1):
+        if player1:
+            if self.player1:
+                return self.username
+            else:
+                return self.opponent
+        else:
+            if self.player1:
+                return self.opponent
+            else:
+                return self.username

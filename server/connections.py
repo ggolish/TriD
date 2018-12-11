@@ -36,6 +36,8 @@ def process_message(socket, message):
         else:
             del users[message["opponent"]]["opponent"]
             users[message["opponent"]]["socket"].write_message(message)
+    elif message["type"] == "move":
+        users[message["opponent"]]["socket"].write_message(message)
 
 
 def send_all_available_users(username):

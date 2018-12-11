@@ -1,9 +1,11 @@
 
 import pygame
+import threading
 
 from board import Board, CaptureBoard
 from piece import *
-from gui import GUI
+from gui import *
+from stars import Stars
 
 # Dictionary describing the different states the game can be in at any 
 # given time
@@ -27,6 +29,10 @@ class TriD():
 
         # Initialize state variables
         self.client = client
+        self.player1 = True
+        self.turn = self.client.get_player(self.player1)
+        if self.turn == self.client.opponent:
+            self.opponents_turn()
         self.status = game_status["INIT"]
         self.debug = debug
 
@@ -40,7 +46,10 @@ class TriD():
         self.board_end_y = self.grid_height - self.board_start_y - 1
 
         # Initialize GUI
-        self.gui = GUI(self.grid_space, 8, self.board_start_y, self.grid_width - 1, self.grid_height - 1, self.client.player1)
+        gui_init(int(self.grid_space * 0.9))
+        self.move_command = ""
+        self.upper = False
+        self.background = Stars(800, self.width, self.height)
 
         # Initialize boards
         self.main1 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 1) * self.grid_space, self.grid_space, 4)
@@ -115,6 +124,27 @@ class TriD():
                 self.change_zlevel(1)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
                 self.change_zlevel(-1)
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                success = self.process_command(self.move_command)
+                if success:
+                    if self.turn == self.client.username:
+                        self.client.send_move(self.move_command)
+                        self.move_command = ""
+                        self.player1 = not self.player1
+                        self.turn = self.client.get_player(self.player1)
+                        self.opponents_turn()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
+                self.move_command = self.move_command[:-1]
+            elif event.type == pygame.KEYDOWN and (event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT):
+                self.upper = True
+            elif event.type == pygame.KEYUP and (event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT):
+                self.upper = False
+            elif event.type == pygame.KEYDOWN:
+                k = chr(event.key)
+                if (k.isalnum() or k in " ,") and len(self.move_command) < 25:
+                    if self.upper:
+                        k = k.upper()
+                    self.move_command += k
 
         keys = pygame.key.get_pressed()
 
@@ -123,10 +153,17 @@ class TriD():
 
     def update(self):
         self.clock.tick(60)
+        if self.turn == self.client.opponent:
+            if self.client_thread.is_alive() == False:
+                self.client_thread.join()
+                self.player1 = not self.player1
+                self.turn = self.client.get_player(self.player1)
+        self.background.update()
 
     def draw(self):
         self.main_window.fill((0, 0, 0))
 
+        self.background.draw(self.main_window)
         if self.debug:
             self.draw_grid()
 
@@ -145,17 +182,17 @@ class TriD():
                 self.draw_pieces(self.current_zlevel)
                 b.outline(self.main_window, (128, 0, 0))
 
-        self.gui.draw(self.main_window)
+        display_rank_file(0, 0, self.grid_space, self.main_window)
+        display_turn(self.turn, 8, 0, self.grid_space, self.main_window)
+        display_zlevel(self.current_zlevel + 1, 8, 1, self.grid_space, self.main_window)
+        display_move(self.move_command, 8, 10, 11, self.grid_space, self.main_window)
         
         pygame.display.flip()
 
     def draw_grid(self):
         for y in range(self.grid_height):
             for x in range(self.grid_width):
-                if x >= self.board_start_x and y >= self.board_start_y and x <= self.board_end_x and y <= self.board_end_y:
-                    c = (0, 255, 0)
-                else:
-                    c = (25, 25, 25)
+                c = (25, 25, 25)
                 pygame.draw.rect(self.main_window, c, (x * self.grid_space, y * self.grid_space, self.grid_space, self.grid_space), 1)
 
     def change_zlevel(self, offset):
@@ -179,4 +216,57 @@ class TriD():
                     x = (self.board_start_x + (ord(f) - ord('a'))) * self.grid_space
                     y = (self.board_start_y + (9 - r)) * self.grid_space
                     p.draw(self.main_window, x, y)
+    
+    def process_command(self, move):
+        pieces = move.split("to")
+        if len(pieces) != 2:
+            print("Invalid command: case 1")
+            return False
 
+        src, dst = pieces
+
+        sr, sf, sz = self.parse_position(src)
+        dr, df, dz = self.parse_position(dst)
+
+        if not sr or not dr:
+            print("Invalid command: case 2")
+            return False
+
+        if self.spaces[sr][sf][sz] == None:
+            print("Invalid command: case 3")
+            return False
+
+        self.spaces[dr][df][dz] = self.spaces[sr][sf][sz]
+        self.spaces[sr][sf][sz] = None
+        return True
+
+    def parse_position(self, pos):
+        pieces = pos.split(",")
+        if len(pieces) != 3:
+            return None, None, None
+
+        # Parse rank
+        try:
+            r = int(pieces[0].strip()) 
+        except:
+            return None, None, None
+
+        # Parse file
+        f = pieces[1].strip()
+        if not f.isalpha():
+            return None, None, None
+
+        # Parse zlevel
+        try:
+            z = int(pieces[2].strip()) - 1
+        except:
+            return None, None, None
+
+        return r, f, z
+
+    def opponents_turn(self):
+        self.client_thread = threading.Thread(target=self.client.get_move, args=(self.process_command,))
+        self.client_thread.daemon = True
+        self.client_thread.start()
+
+        
