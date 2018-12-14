@@ -1,14 +1,23 @@
 
+'''
+    Functions used by server for interacting with clients
+'''
+
 import json
 
+# Global variables for tracking connections
 users = {}
 sockets = []
 
+
+# Stores a new user's socket
 def add_user(socket):
     global sockets
     print("connection made:", socket)
     sockets.append(socket)
 
+
+# Removes a user
 def remove_user(socket):
     global sockets
     global users
@@ -19,6 +28,8 @@ def remove_user(socket):
             break
     sockets.remove(socket)
 
+
+# Handles all messages sent from clients
 def process_message(socket, message):
     global users
     message = json.loads(message)
@@ -30,7 +41,7 @@ def process_message(socket, message):
         users[message["opponent"]]["request"] = message["username"]
         users[message["username"]]["opponent"] = message["opponent"]
     elif message["type"] == "reply":
-        if message["accepted"] == True:
+        if message["accepted"] is True:
             users[message["username"]]["opponent"] = message["opponent"]
             users[message["opponent"]]["socket"].write_message(message)
         else:
@@ -40,12 +51,15 @@ def process_message(socket, message):
         users[message["opponent"]]["socket"].write_message(message)
 
 
+# Sends a user all available opponents. If a request has been made, it
+# sends the request instead
 def send_all_available_users(username):
     global users
 
     # Check if a request has been made
     if "request" in users[username]:
-        message = json.dumps({"type": "request", "opponent": users[username]["request"]})
+        message = json.dumps(
+            {"type": "request", "opponent": users[username]["request"]})
         users[username]["socket"].write_message(message)
         del users[username]["request"]
         return
@@ -53,7 +67,7 @@ def send_all_available_users(username):
     # Send everything
     usernames = []
     for u, user in users.items():
-        if user["socket"] != users[username]["socket"] and "opponent" not in user:
+        if user["socket"] not users[username]["socket"] and "opponent" not in user:
             usernames.append(u)
-    users[username]["socket"].write_message(json.dumps({"type": "all", "users": usernames}))
-
+    users[username]["socket"].write_message(
+        json.dumps({"type": "all", "users": usernames}))

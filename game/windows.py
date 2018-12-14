@@ -2,6 +2,7 @@
 import tkinter as tk
 import threading
 
+
 # Centers a window
 def center(window):
     window.root.withdraw()
@@ -11,6 +12,8 @@ def center(window):
     window.root.geometry("+{}+{}".format(x, y))
     window.root.deiconify()
 
+
+# The window that asks for the users username
 class NameEntryWindow():
 
     def __init__(self):
@@ -21,9 +24,11 @@ class NameEntryWindow():
         self.name_label = tk.Label(self.row1, text="Username:")
         self.name_entry = tk.Entry(self.row1, width=40)
         self.row2 = tk.Frame(self.root)
-        self.connect_button = tk.Button(self.row2, text="Connect", command=self.connect_callback)
-        self.cancel_button = tk.Button(self.row2, text="Cancel", command=self.root.quit)
-        
+        self.connect_button = tk.Button(
+            self.row2, text="Connect", command=self.connect_callback)
+        self.cancel_button = tk.Button(
+            self.row2, text="Cancel", command=self.root.quit)
+
         self.row1.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
         self.name_label.pack(side=tk.LEFT)
         self.name_entry.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
@@ -31,20 +36,24 @@ class NameEntryWindow():
         self.connect_button.pack(side=tk.LEFT, padx=5)
         self.cancel_button.pack(side=tk.LEFT)
         center(self)
-        
+
         self.name = None
 
+    # The terminating function of the window
     def get_name(self):
         self.root.mainloop()
         self.root.destroy()
         return self.name
 
+    # Callback for the connect function
     def connect_callback(self):
         s = self.name_entry.get()
         if len(s) > 0:
             self.name = s.strip()
             self.root.quit()
 
+
+# The game lobby window where the user chooses an opponent
 class OpponentChooseWindow():
 
     def __init__(self, update_callback):
@@ -54,13 +63,17 @@ class OpponentChooseWindow():
         row1 = tk.Frame(self.root)
         self.lb = tk.Listbox(row1, width=60, height=20)
         row2 = tk.Frame(self.root)
-        choose_button = tk.Button(row2, text="Choose", command=self.choose_callback)
+        choose_button = tk.Button(
+            row2, text="Choose", command=self.choose_callback)
         cancel_button = tk.Button(row2, text="Cancel", command=self.root.quit)
         self.request_frame = tk.Frame(self.root)
         self.request_var = tk.StringVar()
-        request_label = tk.Label(self.request_frame, textvariable=self.request_var)
-        accept_button = tk.Button(self.request_frame, text="Accept", command=self.accept_request)
-        deny_button = tk.Button(self.request_frame, text="Deny", command=self.deny_request)
+        request_label = tk.Label(
+            self.request_frame, textvariable=self.request_var)
+        accept_button = tk.Button(
+            self.request_frame, text="Accept", command=self.accept_request)
+        deny_button = tk.Button(
+            self.request_frame, text="Deny", command=self.deny_request)
 
         row1.grid(row=0, padx=5, pady=5)
         self.lb.grid(row=0)
@@ -80,12 +93,14 @@ class OpponentChooseWindow():
         self.finished = False
         self.update()
 
+    # The terminating function
     def choose_opponent(self):
         self.finished = False
         self.update()
         self.root.mainloop()
         return self.opponent, self.type
 
+    # Callback function for choose button
     def choose_callback(self):
         self.finished = True
         selection = self.lb.curselection()
@@ -97,22 +112,27 @@ class OpponentChooseWindow():
             self.finished = False
             self.update()
 
+    # Destroys the window
     def destroy(self):
         self.finished = True
         self.root.destroy()
 
+    # Updates the opponent list, called on a timer
     def update(self):
-        if self.finished: return
+        if self.finished:
+            return
         response = self.update_callback()
         if response["type"] == "all":
             self.update_lb(response["users"])
         elif response["type"] == "request":
             self.opponent = response["opponent"]
-            self.request_var.set("Player {} wants to play you.".format(response["opponent"]))
+            self.request_var.set(
+                "Player {} wants to play you.".format(response["opponent"]))
             self.request_frame.grid()
         self.update_timer = threading.Timer(1.0, self.update)
         self.update_timer.start()
 
+    # Fills the listbox with opponent names
     def update_lb(self, users):
         current = self.lb.curselection()
         self.lb.delete(0, tk.END)
@@ -122,11 +142,12 @@ class OpponentChooseWindow():
             self.lb.activate(current[0])
             self.lb.selection_set(current[0])
 
+    # Callback for accept button
     def accept_request(self):
         self.type = "accept"
         self.root.quit()
 
+    # Callback for deny button
     def deny_request(self):
         self.type = "deny"
         self.root.quit()
-

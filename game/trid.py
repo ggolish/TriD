@@ -1,20 +1,23 @@
 
 import pygame
 import threading
+import gui
 
 from board import Board, CaptureBoard
-from piece import *
-from gui import *
+from piece import Pawn, Knight, Bishop, Rook, King, Queen
 from stars import Stars
 
-# Dictionary describing the different states the game can be in at any 
+# Dictionary describing the different states the game can be in at any
 # given time
 game_status = {
-    "INIT": 0,      # The game has been initialized, but the mainloop has not been called
+    "INIT": 0,      # The game has been initialized, but the mainloop has not
+                    # been called
     "NORMAL": 1,    # The game is in the mainloop and running normally
     "FINISHED": 2   # The game is over and the mainloop should be broken
 }
 
+
+# Represents the actual game
 class TriD():
 
     def __init__(self, client, debug=False):
@@ -24,7 +27,8 @@ class TriD():
         self.width = 1000
         self.height = 600
         self.main_window = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption("TriD Chess ({}): Playing {}".format(client.username, client.opponent))
+        pygame.display.set_caption("TriD Chess ({}): Playing {}".format(
+            client.username, client.opponent))
         self.clock = pygame.time.Clock()
 
         # Initialize state variables
@@ -46,19 +50,26 @@ class TriD():
         self.board_end_y = self.grid_height - self.board_start_y - 1
 
         # Initialize GUI
-        gui_init(int(self.grid_space * 0.9))
+        gui.gui_init(int(self.grid_space * 0.9))
         self.move_command = ""
         self.upper = False
         self.background = Stars(800, self.width, self.height)
 
         # Initialize boards
-        self.main1 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 1) * self.grid_space, self.grid_space, 4)
-        self.main2 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 3) * self.grid_space, self.grid_space, 4)
-        self.main3 = Board((self.board_start_x + 1) * self.grid_space, (self.board_start_y + 5) * self.grid_space, self.grid_space, 4)
-        self.cb1 = CaptureBoard((self.board_start_x) * self.grid_space, (self.board_start_y) * self.grid_space, self.grid_space)
-        self.cb2 = CaptureBoard((self.board_start_x + 4) * self.grid_space, (self.board_start_y) * self.grid_space, self.grid_space)
-        self.cb3 = CaptureBoard((self.board_start_x) * self.grid_space, (self.board_start_y + 8) * self.grid_space, self.grid_space)
-        self.cb4 = CaptureBoard((self.board_start_x + 4) * self.grid_space, (self.board_start_y + 8) * self.grid_space, self.grid_space)
+        self.main1 = Board((self.board_start_x + 1) * self.grid_space,
+                           (self.board_start_y + 1) * self.grid_space, self.grid_space, 4)
+        self.main2 = Board((self.board_start_x + 1) * self.grid_space,
+                           (self.board_start_y + 3) * self.grid_space, self.grid_space, 4)
+        self.main3 = Board((self.board_start_x + 1) * self.grid_space,
+                           (self.board_start_y + 5) * self.grid_space, self.grid_space, 4)
+        self.cb1 = CaptureBoard((self.board_start_x) * self.grid_space,
+                                (self.board_start_y) * self.grid_space, self.grid_space)
+        self.cb2 = CaptureBoard((self.board_start_x + 4) * self.grid_space,
+                                (self.board_start_y) * self.grid_space, self.grid_space)
+        self.cb3 = CaptureBoard((self.board_start_x) * self.grid_space,
+                                (self.board_start_y + 8) * self.grid_space, self.grid_space)
+        self.cb4 = CaptureBoard((self.board_start_x + 4) * self.grid_space,
+                                (self.board_start_y + 8) * self.grid_space, self.grid_space)
 
         # Zlevels (which board pieces are on)
         self.zlevel = [None] * 7
@@ -109,6 +120,7 @@ class TriD():
         self.spaces[8]['e'][6] = Pawn(False, self.grid_space)
         self.spaces[8]['f'][6] = Pawn(False, self.grid_space)
 
+    # The main game loop
     def mainloop(self):
         self.status = game_status["NORMAL"]
         while self.status != game_status["FINISHED"]:
@@ -116,6 +128,7 @@ class TriD():
             self.update()
             self.draw()
 
+    # Processes all events
     def process_input(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -151,15 +164,17 @@ class TriD():
         if keys[pygame.K_ESCAPE]:
             self.status = game_status["FINISHED"]
 
+    # Updates game state
     def update(self):
         self.clock.tick(60)
         if self.turn == self.client.opponent:
-            if self.client_thread.is_alive() == False:
+            if self.client_thread.is_alive() is False:
                 self.client_thread.join()
                 self.player1 = not self.player1
                 self.turn = self.client.get_player(self.player1)
         self.background.update()
 
+    # Updates the screen
     def draw(self):
         self.main_window.fill((0, 0, 0))
 
@@ -168,7 +183,8 @@ class TriD():
             self.draw_grid()
 
         for z in range(len(self.zlevel)):
-            if z == self.current_zlevel: continue
+            if z == self.current_zlevel:
+                continue
             li = self.zlevel[z]
             if li:
                 for b in li:
@@ -182,19 +198,26 @@ class TriD():
                 self.draw_pieces(self.current_zlevel)
                 b.outline(self.main_window, (128, 0, 0))
 
-        display_rank_file(0, 0, self.grid_space, self.main_window)
-        display_turn(self.turn, 8, 0, self.grid_space, self.main_window)
-        display_zlevel(self.current_zlevel + 1, 8, 1, self.grid_space, self.main_window)
-        display_move(self.move_command, 8, 10, 11, self.grid_space, self.main_window)
-        
+        gui.display_rank_file(0, 0, self.grid_space, self.main_window)
+        gui.display_turn(self.turn, 8, 0, self.grid_space, self.main_window)
+        gui.display_zlevel(self.current_zlevel + 1, 8, 1,
+                           self.grid_space, self.main_window)
+        gui.display_move(self.move_command, 8, 10, 11,
+                         self.grid_space, self.main_window)
+
         pygame.display.flip()
 
+    # A debug function that displays the entire grid
     def draw_grid(self):
         for y in range(self.grid_height):
             for x in range(self.grid_width):
                 c = (25, 25, 25)
-                pygame.draw.rect(self.main_window, c, (x * self.grid_space, y * self.grid_space, self.grid_space, self.grid_space), 1)
+                pygame.draw.rect(self.main_window, c, (x * self.grid_space,
+                                                       y * self.grid_space,
+                                                       self.grid_space,
+                                                       self.grid_space), 1)
 
+    # Changes the currently displayed zlevel
     def change_zlevel(self, offset):
         if offset != 1 and offset != -1:
             return
@@ -206,17 +229,20 @@ class TriD():
             self.current_zlevel %= len(self.zlevel)
             li = self.zlevel[self.current_zlevel]
 
+    # Draws all pieces onto the board
     def draw_pieces(self, z):
         for i in range(10):
             for j in range(6):
                 r = i
                 f = chr(ord('a') + j)
                 p = self.spaces[r][f][z]
-                if p != None:
-                    x = (self.board_start_x + (ord(f) - ord('a'))) * self.grid_space
+                if p is not None:
+                    x = (self.board_start_x + (ord(f) - ord('a'))) * \
+                        self.grid_space
                     y = (self.board_start_y + (9 - r)) * self.grid_space
                     p.draw(self.main_window, x, y)
-    
+
+    # Parses a command given by a player and executes it
     def process_command(self, move):
         pieces = move.split("to")
         if len(pieces) != 2:
@@ -232,7 +258,7 @@ class TriD():
             print("Invalid command: case 2")
             return False
 
-        if self.spaces[sr][sf][sz] == None:
+        if self.spaces[sr][sf][sz] is None:
             print("Invalid command: case 3")
             return False
 
@@ -240,6 +266,7 @@ class TriD():
         self.spaces[sr][sf][sz] = None
         return True
 
+    # A helper method that parses a position of the form r,f,z
     def parse_position(self, pos):
         pieces = pos.split(",")
         if len(pieces) != 3:
@@ -247,7 +274,7 @@ class TriD():
 
         # Parse rank
         try:
-            r = int(pieces[0].strip()) 
+            r = int(pieces[0].strip())
         except:
             return None, None, None
 
@@ -264,9 +291,10 @@ class TriD():
 
         return r, f, z
 
+    # Changes game state to opponents turn, a thread is started that listens
+    # for moves sent from the server
     def opponents_turn(self):
-        self.client_thread = threading.Thread(target=self.client.get_move, args=(self.process_command,))
+        self.client_thread = threading.Thread(
+            target=self.client.get_move, args=(self.process_command,))
         self.client_thread.daemon = True
         self.client_thread.start()
-
-        

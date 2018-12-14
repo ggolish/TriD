@@ -1,0 +1,21 @@
+
+** Usage:
+ - Run =server/server.py= to start the game server.
+ - Run =game/main.py= to start a game client.
+
+** Assets:
+ - Chess piece sprites: https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent
+ - Font: https://www.fontspace.com/pixel-sagas/roddenberry
+ - Music: https://www.youtube.com/watch?v=6mrNZCe4knI
+  
+** Notes:
+ - To move a piece, you must enter a move of the form =r,f,z=, where
+   =r= is a rank from 0-9, f is a file from a-z, and z is a zlevel
+   from 1-7. Invalid move errors are currently displayed only in the console.
+ - Due to time constraints with other projects, there is no logic in
+   place to force players to play the game by the rules.
+** Dependencies:
+ This project requires the following python3 packages:
+ - =tornado=
+ - =websocket-client=
+ - =numpy=

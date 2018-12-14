@@ -4,9 +4,6 @@ from client import Client
 from trid import TriD
 from windows import NameEntryWindow, OpponentChooseWindow
 
-def connect_to_server(address):
-    return ws, username
-
 if __name__ == "__main__":
 
     # Parse command line args
@@ -43,6 +40,7 @@ if __name__ == "__main__":
             client.request_reply(opponent, False)
 
     print("Playing against", opponent)
-    
+
+    # Begin the game
     game = TriD(client)
     game.mainloop()

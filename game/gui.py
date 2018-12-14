@@ -4,6 +4,8 @@ import pygame
 font = None
 font_color = (255, 255, 0)
 
+
+# Initializes global variables
 def gui_init(font_size):
     global font
     global font_width
@@ -17,6 +19,8 @@ def gui_init(font_size):
     pygame.mixer.music.set_volume(0.05)
     pygame.mixer.music.play(-1)
 
+
+# Displays the rank and file markers around the game board
 def display_rank_file(start_x, start_y, grid_space, window):
 
     global font
@@ -46,6 +50,8 @@ def display_rank_file(start_x, start_y, grid_space, window):
         x += grid_space
         curr_file += 1
 
+
+# Displays the username of the current player
 def display_turn(player, grid_x, grid_y, grid_space, window):
     global font
     global font_color
@@ -54,6 +60,8 @@ def display_turn(player, grid_x, grid_y, grid_space, window):
     text = "{}'s turn".format(player)
     window.blit(font.render(text, True, font_color), (real_x, real_y))
 
+
+# Displays the current zlevel being displayed
 def display_zlevel(zlevel, grid_x, grid_y, grid_space, window):
     global font
     global font_color
@@ -62,6 +70,8 @@ def display_zlevel(zlevel, grid_x, grid_y, grid_space, window):
     text = "Zlevel: {}".format(zlevel)
     window.blit(font.render(text, True, font_color), (real_x, real_y))
 
+
+# Displays the move prompt
 def display_move(move, grid_x, grid_y, width, grid_space, window):
     global font
     global font_color
@@ -72,5 +82,3 @@ def display_move(move, grid_x, grid_y, width, grid_space, window):
     text = "> {}".format(move)
     window.blit(font.render(text, True, font_color), (real_x, real_y))
     pygame.draw.line(window, font_color, start_pos, end_pos, 2)
-
-
